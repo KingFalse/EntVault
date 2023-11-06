@@ -24,8 +24,9 @@ public class Enterprise extends AbstractEntity {
     private String website;//企业官网
     private String telephone;//联系电话
     private String status;//经营状态,如:营业,暂停营业,注销
-    private String type;//企业类型,如:国有企业,私营企业,集体企业,联营企业,股份有限公司
+    private String type;//平台企业类型标签
     private String unifiedSocialCreditCode;//统一社会信用代码,辅助企业唯一判断字段,因为部分机关单位无此字段
+    private String regNo;//注册号码,辅助企业唯一判断字段
     private String email;//邮箱
     private String orgType;//企业类型,多个逗号隔开,如:有限责任公司,国有企业,有限责任公司(国有独资)
     private String province;//省
@@ -38,7 +39,9 @@ public class Enterprise extends AbstractEntity {
     private String hitReason;//入选原因(企查查标记国企,天眼查标记国企,族谱标记国企,人为标记国企等)
     private String hitPlatform;//如选平台,如:天眼查,企查查
     private String tags;//平台给定标签,多个逗号隔开,如:国企,外资,外资企业
+    @Column(nullable = false)
     private LocalDateTime createTime;//入库时间
+    @Column(nullable = false)
     private LocalDateTime updateTime;//更新时间
 
 }
