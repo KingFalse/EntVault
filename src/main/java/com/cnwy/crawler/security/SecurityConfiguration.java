@@ -22,6 +22,8 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
+        http.csrf(csrf -> csrf.ignoringRequestMatchers(new AntPathRequestMatcher("/api/**"))).authorizeHttpRequests(authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/api/**")).permitAll());
+
         http.authorizeHttpRequests(
                 authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/images/*.png")).permitAll());
 
