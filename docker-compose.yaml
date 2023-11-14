@@ -3,7 +3,7 @@ version: '3.8'
 services:
   crawler-wechat:
     image: kingfalse/graalvm-jdk:21-ol9
-    container_name: prod-EntVault
+    container_name: prod-entvault
     environment:
       TZ: Asia/Shanghai
     volumes:

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 
 @RestController
@@ -31,7 +32,7 @@ public class ApiController {
     public ResponseEntity<String> save(@RequestBody Enterprise body) {
         body.setCreateTime(LocalDateTime.now());
         body.setUpdateTime(LocalDateTime.now());
-        enterpriseRepository.save(body);
+        CompletableFuture.runAsync(()-> enterpriseRepository.save(body));
         return ResponseEntity.of(Optional.of("OK"));
     }
 

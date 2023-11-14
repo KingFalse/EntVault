@@ -33,7 +33,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 
 @PageTitle("Dashboard")
 @Route(value = "dashboard", layout = MainLayout.class)
-@RouteAlias(value = "", layout = MainLayout.class)
 @AnonymousAllowed
 public class DashboardView extends Main {
 
