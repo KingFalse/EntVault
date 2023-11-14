@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @PageTitle("官网自动绑定")
-@RouteAlias(value = "associate", layout = MainLayout.class)
+@Route(value = "associate", layout = MainLayout.class)
 @AnonymousAllowed
 public class AssociateView extends VerticalLayout {
 
