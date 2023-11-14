@@ -4,7 +4,7 @@ import com.cnwy.crawler.data.User;
 import com.cnwy.crawler.security.AuthenticatedUser;
 import com.cnwy.crawler.views.associate.AssociateView;
 import com.cnwy.crawler.views.dashboard.DashboardView;
-import com.cnwy.crawler.views.enterprise.EnterpriseView;
+import com.cnwy.crawler.views.enterprise.EnterpriseListView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -72,7 +72,7 @@ public class MainLayout extends AppLayout {
 
         if (accessChecker.hasAccess(DashboardView.class)) {
 //            nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
-            nav.addItem(new SideNavItem("国央企列表", EnterpriseView.class, LineAwesomeIcon.FILTER_SOLID.create()));
+            nav.addItem(new SideNavItem("国央企列表", EnterpriseListView.class, LineAwesomeIcon.FILTER_SOLID.create()));
             nav.addItem(new SideNavItem("官网自动绑定", AssociateView.class, LineAwesomeIcon.FILTER_SOLID.create()));
 
         }

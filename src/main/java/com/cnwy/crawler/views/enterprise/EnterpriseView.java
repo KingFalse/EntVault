@@ -1,265 +1,214 @@
 package com.cnwy.crawler.views.enterprise;
 
-import com.cnwy.crawler.data.Enterprise;
 import com.cnwy.crawler.services.EnterpriseService;
-import com.cnwy.crawler.util.VaadinUtil;
-import com.cnwy.crawler.views.MainLayout;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.CheckboxGroup;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.LocalDateTimeRenderer;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
-import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.persistence.criteria.*;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
+import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
+import java.util.Optional;
 
-@PageTitle("国央企列表")
-@Route(value = "enterprise", layout = MainLayout.class)
+@Slf4j
 @AnonymousAllowed
-@Uses(Icon.class)
-public class EnterpriseView extends Div {
+@PageTitle("企业详情")
+@Route(value = "enterprise/:enterpriseID")
+public class EnterpriseView extends Composite<VerticalLayout> implements BeforeEnterObserver {
 
     private final EnterpriseService enterpriseService;
-    private final Filters filters;
-    private Grid<Enterprise> grid;
+    private Long enterpriseID;
 
     public EnterpriseView(EnterpriseService enterpriseService) {
         this.enterpriseService = enterpriseService;
-
-        setSizeFull();
-        addClassNames("enterprise-view");
-
-        filters = new Filters(() -> refreshGrid());
-        VerticalLayout layout = new VerticalLayout(createMobileFilters(), filters, createGrid());
-        layout.setSizeFull();
-        layout.setPadding(false);
-        layout.setSpacing(false);
-        add(layout);
+        log.error("对象出实话完成");
     }
 
-    private HorizontalLayout createMobileFilters() {
-        // Mobile version
-        HorizontalLayout mobileFilters = new HorizontalLayout();
-        mobileFilters.setWidthFull();
-        mobileFilters.addClassNames(LumoUtility.Padding.MEDIUM, LumoUtility.BoxSizing.BORDER,
-                LumoUtility.AlignItems.CENTER);
-        mobileFilters.addClassName("mobile-filters");
+    private void setup() {
+        enterpriseService.get(enterpriseID).ifPresent(enterprise -> {
+            VerticalLayout layoutColumn2 = new VerticalLayout();
+            H2 name = new H2(enterprise.getName());
 
-        Icon mobileIcon = new Icon("lumo", "plus");
-        Span filtersHeading = new Span("Filters");
-        mobileFilters.add(mobileIcon, filtersHeading);
-        mobileFilters.setFlexGrow(1, filtersHeading);
-        mobileFilters.addClickListener(e -> {
-            if (filters.getClassNames().contains("visible")) {
-                filters.removeClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:plus");
-            } else {
-                filters.addClassName("visible");
-                mobileIcon.getElement().setAttribute("icon", "lumo:minus");
-            }
-        });
-        return mobileFilters;
-    }
-
-    private Component createGrid() {
-        grid = new Grid<>(Enterprise.class, false);
-        grid.addColumn("name").setResizable(true).setHeader("企业名称").setAutoWidth(true);
-        grid.addColumn("alias").setResizable(true).setHeader("简称").setAutoWidth(true);
-        grid.addColumn("website").setResizable(true).setHeader("官网").setAutoWidth(true);
-        grid.addColumn("status").setResizable(true).setHeader("经营状态").setAutoWidth(true);
-        grid.addColumn("type").setResizable(true).setHeader("平台企业类型标签").setAutoWidth(true);
-        grid.addColumn("province").setResizable(true).setHeader("省").setAutoWidth(true);
-        grid.addColumn("city").setResizable(true).setHeader("市").setAutoWidth(true);
-        grid.addColumn("district").setResizable(true).setHeader("区/县").setAutoWidth(true);
-        grid.addColumn("qccID").setResizable(true).setHeader("企查查ID").setAutoWidth(true);
-        grid.addColumn("hitReason").setResizable(true).setHeader("入选原因").setAutoWidth(true);
-        grid.addColumn(new LocalDateTimeRenderer<>(Enterprise::getUpdateTime, () -> VaadinUtil.dateTimeFormatter)).setHeader("更新时间").setSortable(true).setAutoWidth(true).setResizable(true);
-
-        grid.setItems(query -> enterpriseService.list(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
-                filters).stream());
-        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-
-        return grid;
-    }
-
-    private void refreshGrid() {
-        grid.getDataProvider().refreshAll();
-    }
-
-//    @Override
-//    protected void onAttach(AttachEvent attachEvent) {
-//        super.onAttach(attachEvent);
-//        UI current = UI.getCurrent();
-//        CompletableFuture.runAsync(() -> {
-//            Long count = enterpriseService.count(filters);
-//            current.access((Command) () -> {
-//                Notification notification = new Notification("当前条件下企业总数为: " + count, 8000, Notification.Position.TOP_END);
-//                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-//                notification.open();
-//            });
-//        });
-//    }
-
-    public static class Filters extends Div implements Specification<Enterprise> {
-
-        private final TextField name = new TextField("公司名称");
-        private final TextField phone = new TextField("Phone");
-        private final DatePicker startDate = new DatePicker("Date of Birth");
-        private final DatePicker endDate = new DatePicker();
-        private final MultiSelectComboBox<String> occupations = new MultiSelectComboBox<>("Occupation");
-        private final CheckboxGroup<String> roles = new CheckboxGroup<>("Role");
-
-        public Filters(Runnable onSearch) {
-
-            setWidthFull();
-            addClassName("filter-layout");
-            addClassNames(LumoUtility.Padding.Horizontal.LARGE, LumoUtility.Padding.Vertical.MEDIUM,
-                    LumoUtility.BoxSizing.BORDER);
-            name.setPlaceholder("请输入关键词...");
-
-            occupations.setItems("Insurance Clerk", "Mortarman", "Beer Coil Cleaner", "Scale Attendant");
-
-            roles.setItems("Worker", "Supervisor", "Manager", "External");
-            roles.addClassName("double-width");
-
-            // Action buttons
-            Button resetBtn = new Button("Reset");
-            resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            resetBtn.addClickListener(e -> {
-                name.clear();
-                phone.clear();
-                startDate.clear();
-                endDate.clear();
-                occupations.clear();
-                roles.clear();
-                onSearch.run();
+            HorizontalLayout layoutTags = new HorizontalLayout();
+            Arrays.stream(enterprise.getTags().split(",")).forEach(tag -> {
+                Span badge = new Span(tag);
+                badge.getElement().getThemeList().add("badge small");
+                layoutTags.add(badge);
             });
-            Button searchBtn = new Button("Search");
-            searchBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            searchBtn.addClickListener(e -> onSearch.run());
-
-            Div actions = new Div(resetBtn, searchBtn);
-            actions.addClassName(LumoUtility.Gap.SMALL);
-            actions.addClassName("actions");
-
-//            add(name, phone, createDateRangeFilter(), occupations, roles, actions);
-            add(name, actions);
-        }
-
-        private Component createDateRangeFilter() {
-            startDate.setPlaceholder("From");
-
-            endDate.setPlaceholder("To");
-
-            // For screen readers
-            startDate.setAriaLabel("From date");
-            endDate.setAriaLabel("To date");
-
-            FlexLayout dateRangeComponent = new FlexLayout(startDate, new Text(" – "), endDate);
-            dateRangeComponent.setAlignItems(FlexComponent.Alignment.BASELINE);
-            dateRangeComponent.addClassName(LumoUtility.Gap.XSMALL);
-
-            return dateRangeComponent;
-        }
-
-        @Override
-        public Predicate toPredicate(Root<Enterprise> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-            List<Predicate> predicates = new ArrayList<>();
-
-            if (!name.isEmpty()) {
-                String nameFilter = name.getValue().strip();
-                Predicate firstNameMatch = criteriaBuilder.like(root.get("name"), "%" + nameFilter + "%");
-                predicates.add(criteriaBuilder.or(firstNameMatch));
+            HorizontalLayout layoutHref = new HorizontalLayout();
+            if (enterprise.getQccID()!=null){
+                Anchor anchor = new Anchor("https://www.qcc.com/firm/%s.html".formatted(enterprise.getQccID()), "跳转企查查");
+                layoutHref.add(anchor);
             }
-//            if (!phone.isEmpty()) {
-//                String databaseColumn = "phone";
-//                String ignore = "- ()";
-//
-//                String lowerCaseFilter = ignoreCharacters(ignore, phone.getValue().toLowerCase());
-//                Predicate phoneMatch = criteriaBuilder.like(
-//                        ignoreCharacters(ignore, criteriaBuilder, criteriaBuilder.lower(root.get(databaseColumn))),
-//                        "%" + lowerCaseFilter + "%");
-//                predicates.add(phoneMatch);
-//
-//            }
-//            if (startDate.getValue() != null) {
-//                String databaseColumn = "dateOfBirth";
-//                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get(databaseColumn),
-//                        criteriaBuilder.literal(startDate.getValue())));
-//            }
-//            if (endDate.getValue() != null) {
-//                String databaseColumn = "dateOfBirth";
-//                predicates.add(criteriaBuilder.greaterThanOrEqualTo(criteriaBuilder.literal(endDate.getValue()),
-//                        root.get(databaseColumn)));
-//            }
-//            if (!occupations.isEmpty()) {
-//                String databaseColumn = "occupation";
-//                List<Predicate> occupationPredicates = new ArrayList<>();
-//                for (String occupation : occupations.getValue()) {
-//                    occupationPredicates
-//                            .add(criteriaBuilder.equal(criteriaBuilder.literal(occupation), root.get(databaseColumn)));
-//                }
-//                predicates.add(criteriaBuilder.or(occupationPredicates.toArray(Predicate[]::new)));
-//            }
-//            if (!roles.isEmpty()) {
-//                String databaseColumn = "role";
-//                List<Predicate> rolePredicates = new ArrayList<>();
-//                for (String role : roles.getValue()) {
-//                    rolePredicates.add(criteriaBuilder.equal(criteriaBuilder.literal(role), root.get(databaseColumn)));
-//                }
-//                predicates.add(criteriaBuilder.or(rolePredicates.toArray(Predicate[]::new)));
-//            }
-            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
-        }
-
-        private String ignoreCharacters(String characters, String in) {
-            String result = in;
-            for (int i = 0; i < characters.length(); i++) {
-                result = result.replace("" + characters.charAt(i), "");
+            if (enterprise.getTycID()!=null){
+                Anchor anchor = new Anchor("https://www.qcc.com/firm/%s.html".formatted(enterprise.getTycID()), "跳转天眼查");
+                layoutHref.add(anchor);
             }
-            return result;
-        }
 
-        private Expression<String> ignoreCharacters(String characters, CriteriaBuilder criteriaBuilder,
-                                                    Expression<String> inExpression) {
-            Expression<String> expression = inExpression;
-            for (int i = 0; i < characters.length(); i++) {
-                expression = criteriaBuilder.function("replace", String.class, expression,
-                        criteriaBuilder.literal(characters.charAt(i)), criteriaBuilder.literal(""));
-            }
-            return expression;
-        }
+
+            FormLayout formLayout2Col = new FormLayout();
+            formLayout2Col.setResponsiveSteps(
+                    new FormLayout.ResponsiveStep("0", 1),
+                    new FormLayout.ResponsiveStep("500px", 4)
+            );
+
+            TextField unifiedSocialCreditCode = new TextField();
+            unifiedSocialCreditCode.setLabel("统一社会信用代码");
+            unifiedSocialCreditCode.setValue(enterprise.getUnifiedSocialCreditCode());
+            unifiedSocialCreditCode.setReadOnly(true);
+            formLayout2Col.add(unifiedSocialCreditCode);
+            formLayout2Col.setColspan(unifiedSocialCreditCode,2);
+
+            TextField status = new TextField();
+            status.setLabel("经营状态");
+            status.setValue(enterprise.getStatus());
+            status.setReadOnly(true);
+            formLayout2Col.add(status);
+
+            TextField type = new TextField();
+            type.setLabel("央国企类型");
+            type.setValue(enterprise.getType());
+            type.setReadOnly(true);
+            formLayout2Col.add(type);
+
+            TextField alias = new TextField();
+            alias.setLabel("别名/简称");
+            alias.setValue(Optional.ofNullable(enterprise.getAlias()).orElse(""));
+            alias.setReadOnly(true);
+            formLayout2Col.add(alias);
+
+            TextField email = new TextField();
+            email.setLabel("电子邮箱");
+            email.setValue(Optional.ofNullable(enterprise.getEmail()).orElse(""));
+            email.setReadOnly(true);
+            formLayout2Col.add(email);
+
+            TextField telephone = new TextField();
+            telephone.setLabel("联系电话");
+            telephone.setValue(Optional.ofNullable(enterprise.getTelephone()).orElse(""));
+            telephone.setReadOnly(true);
+            formLayout2Col.add(telephone);
+
+            TextField regNo = new TextField();
+            regNo.setLabel("工商注册号");
+            regNo.setValue(Optional.ofNullable(enterprise.getRegNo()).orElse(""));
+            regNo.setReadOnly(true);
+            formLayout2Col.add(regNo);
+
+            TextField gw = new TextField();
+            gw.setLabel("官网");
+            gw.setValue(enterprise.getWebsite());
+            gw.setReadOnly(true);
+            formLayout2Col.add(gw);
+            formLayout2Col.setColspan(gw,2);
+
+            TextField orgType = new TextField();
+            orgType.setLabel("组织机构类型");
+            orgType.setValue(enterprise.getOrgType());
+            orgType.setReadOnly(true);
+            formLayout2Col.add(orgType);
+            formLayout2Col.setColspan(orgType,2);
+
+            TextField province = new TextField();
+            province.setLabel("所在省");
+            province.setValue(Optional.ofNullable(enterprise.getProvince()).orElse(""));
+            province.setReadOnly(true);
+            formLayout2Col.add(province);
+
+            TextField city = new TextField();
+            city.setLabel("所在市");
+            city.setValue(Optional.ofNullable(enterprise.getCity()).orElse(""));
+            city.setReadOnly(true);
+            formLayout2Col.add(city);
+
+            TextField district = new TextField();
+            district.setLabel("所在区/县");
+            district.setValue(Optional.ofNullable(enterprise.getDistrict()).orElse(""));
+            district.setReadOnly(true);
+            formLayout2Col.add(district);
+            formLayout2Col.add(new Div());
+
+            TextField address = new TextField();
+            address.setLabel("详细地址");
+            address.setValue(Optional.ofNullable(enterprise.getAddress()).orElse(""));
+            address.setReadOnly(true);
+            formLayout2Col.add(address);
+            formLayout2Col.setColspan(address,4);
+
+            TextArea description = new TextArea();
+            description.setLabel("简介");
+            description.setValue(Optional.ofNullable(enterprise.getDescription()).orElse(""));
+            description.setReadOnly(true);
+            description.addClassName("no-line");
+            formLayout2Col.add(description);
+            formLayout2Col.setColspan(description,4);
+
+            DatePicker datePicker = new DatePicker();
+            TextField textField3 = new TextField();
+            EmailField emailField = new EmailField();
+            TextField textField4 = new TextField();
+            HorizontalLayout layoutRow = new HorizontalLayout();
+            Button buttonPrimary = new Button();
+            Button buttonSecondary = new Button();
+            getContent().setWidth("100%");
+            getContent().getStyle().set("flex-grow", "1");
+            getContent().setJustifyContentMode(JustifyContentMode.START);
+            getContent().setAlignItems(Alignment.CENTER);
+            layoutColumn2.setWidth("100%");
+            layoutColumn2.setMaxWidth("800px");
+            layoutColumn2.setHeight("min-content");
+            name.setWidth("100%");
+            formLayout2Col.setWidth("100%");
+            datePicker.setLabel("Birthday");
+            textField3.setLabel("Phone Number");
+            emailField.setLabel("Email");
+            textField4.setLabel("Occupation");
+            layoutRow.addClassName(Gap.MEDIUM);
+            layoutRow.setWidth("100%");
+            layoutRow.getStyle().set("flex-grow", "1");
+            buttonPrimary.setText("Save");
+            buttonPrimary.setWidth("min-content");
+            buttonPrimary.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            buttonSecondary.setText("Cancel");
+            buttonSecondary.setWidth("min-content");
+            getContent().add(layoutColumn2);
+            layoutColumn2.add(name);
+            layoutColumn2.add(layoutTags);
+            layoutColumn2.add(layoutHref);
+
+            layoutColumn2.add(formLayout2Col);
+//            formLayout2Col.add(unifiedSocialCreditCode);
+//            formLayout2Col.add(type);
+//            formLayout2Col.add(datePicker);
+//            formLayout2Col.add(textField3);
+//            formLayout2Col.add(emailField);
+//            formLayout2Col.add(textField4);
+//            layoutColumn2.add(layoutRow);
+//            layoutRow.add(buttonPrimary);
+//            layoutRow.add(buttonSecondary);
+        });
 
     }
 
+    @Override
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        enterpriseID = beforeEnterEvent.getRouteParameters().getLong("enterpriseID").get();
+        setup();
+    }
 }

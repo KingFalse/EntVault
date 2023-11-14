@@ -1,3 +1,8 @@
 @import url('./main-layout.css');
 @import url('./views/dashboard-view.css');
 @import url('./views/enterprise-view.css');
+
+/*登录页面去除大圆角*/
+vaadin-login-overlay-wrapper::part(card) {
+    border-radius: 0;
+}

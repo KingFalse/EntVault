@@ -66,8 +66,8 @@ public class VaadinUtil {
     public static LoginI18n loginI18nCN() {
         LoginI18n i18n = LoginI18n.createDefault();
         LoginI18n.Header i18nHeader = new LoginI18n.Header();
-        i18nHeader.setTitle("微信爬虫平台");
-        i18nHeader.setDescription("crawler ❤️ wechat");
+        i18nHeader.setTitle("央国企企业库");
+        i18nHeader.setDescription("测试账号密码均为:ev");
         i18n.setHeader(i18nHeader);
 
         LoginI18n.Form i18nForm = i18n.getForm();
