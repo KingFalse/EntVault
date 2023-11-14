@@ -109,6 +109,51 @@ public class EnterpriseListView extends Div {
         grid.addColumn(new LocalDateTimeRenderer<>(Enterprise::getUpdateTime, () -> VaadinUtil.dateTimeFormatter)).setHeader("更新时间").setSortable(true).setAutoWidth(true).setResizable(true);
         createOperateColumn();
 
+        grid.addItemClickListener(e -> {
+            Enterprise item = e.getItem();
+            Grid.Column<Enterprise> column = e.getColumn();
+            String columnName = column.getKey();
+            System.err.println(columnName);
+            String msg = "";
+            switch (columnName) {
+                case "id":
+                    msg = item.getId() + "";
+                    break;
+                case "name":
+                    msg = item.getName();
+                    break;
+                case "website":
+                    msg = item.getWebsite();
+                    break;
+                case "alias":
+                    msg = item.getAlias();
+                    break;
+                case "status":
+                    msg = item.getStatus();
+                    break;
+                case "type":
+                    msg = item.getType();
+                    break;
+                case "province":
+                    msg = item.getProvince();
+                    break;
+                case "city":
+                    msg = item.getCity();
+                    break;
+                case "district":
+                    msg = item.getDistrict();
+                    break;
+                case "hitReason":
+                    msg = item.getHitReason();
+                    break;
+                default:
+                    msg = item.getType();
+            }
+            if (msg != null) {
+                VaadinUtil.sendClipboard(msg);
+            }
+        });
+
         grid.setItems(query -> enterpriseService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)),
                 filters).stream());

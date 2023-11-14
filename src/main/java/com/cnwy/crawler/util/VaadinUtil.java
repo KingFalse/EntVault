@@ -1,5 +1,6 @@
 package com.cnwy.crawler.util;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.crud.CrudI18n;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.login.LoginI18n;
@@ -23,6 +24,29 @@ public class VaadinUtil {
 
     public static void alertSuccess(String msg) {
         alert(msg).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+    }
+
+    /**
+     * 设置剪切板
+     *
+     * @param msg
+     */
+    public static void sendClipboard(String msg) {
+        UI.getCurrent().getPage().executeJs(
+                // language=JavaScript
+                """
+                        const textarea = document.createElement('textarea');
+                        textarea.value = $0;
+                        textarea.style.position = 'absolute';
+                        textarea.style.opacity = '0';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        """, msg);
+        Notification notification = new Notification("已复制：" + msg, 5000, Notification.Position.BOTTOM_END);
+        notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+        notification.open();
     }
 
     private static Notification alert(String msg) {
