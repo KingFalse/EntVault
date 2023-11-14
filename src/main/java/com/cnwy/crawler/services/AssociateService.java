@@ -39,6 +39,11 @@ public class AssociateService {
      */
     @Nullable
     public AssociateGW doAssociate(String link) throws IOException {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         // TODO: 2023/11/14 排除其他绑定逻辑,是官网的才往下走
         AssociateGW associateGW = null;
         // TODO: 2023/11/13 提取二级域名

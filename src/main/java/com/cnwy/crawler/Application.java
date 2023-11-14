@@ -2,6 +2,7 @@ package com.cnwy.crawler;
 
 import com.cnwy.crawler.data.SamplePersonRepository;
 import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.theme.Theme;
 import javax.sql.DataSource;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
  */
 
+@Push
 @EnableScheduling
 @SpringBootApplication
 @Theme(value = "entvault")

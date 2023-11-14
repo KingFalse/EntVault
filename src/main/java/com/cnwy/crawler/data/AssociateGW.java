@@ -2,7 +2,6 @@ package com.cnwy.crawler.data;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +21,8 @@ public class AssociateGW extends AbstractEntity {
     @Column(nullable = false)
     private Long enterpriseID;//企业ID
     private String reason;//绑定原因
-    private String domain;//官网二级域名
+    @Column(unique = true)
+    private String domain;//官网二级域名,暂定一个二级域名只能绑定一家企业
     @Column(nullable = false)
     private LocalDateTime createTime;//入库时间
     @Column(nullable = false)
