@@ -1,5 +1,9 @@
 package com.cnwy.crawler.data;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotEmpty;
@@ -39,9 +43,13 @@ public class Enterprise extends AbstractEntity {
     private String hitReason;//入选原因(企查查标记国企,天眼查标记国企,族谱标记国企,人为标记国企等)
     private String hitPlatform;//如选平台,如:天眼查,企查查
     private String tags;//平台给定标签,多个逗号隔开,如:国企,外资,外资企业
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     @Column(nullable = false)
     private LocalDateTime createTime;//入库时间
     @Column(nullable = false)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime updateTime;//更新时间
 
 }

@@ -1,14 +1,17 @@
 package com.cnwy.crawler.views.associate;
 
+import com.alibaba.fastjson2.JSON;
 import com.cnwy.crawler.data.AssociateGW;
 import com.cnwy.crawler.data.Enterprise;
 import com.cnwy.crawler.data.EnterpriseRepository;
 import com.cnwy.crawler.services.AssociateService;
 import com.cnwy.crawler.util.VaadinUtil;
 import com.cnwy.crawler.views.MainLayout;
-import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -17,18 +20,33 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.function.SerializableConsumer;
-import com.vaadin.flow.function.SerializableRunnable;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RJsonBucket;
+import org.redisson.api.RSearch;
+import org.redisson.api.RedissonClient;
+import org.redisson.api.search.index.FieldIndex;
+import org.redisson.api.search.index.IndexOptions;
+import org.redisson.api.search.index.IndexType;
+import org.redisson.api.search.query.QueryOptions;
+import org.redisson.api.search.query.ReturnAttribute;
+import org.redisson.api.search.query.SearchResult;
+import org.redisson.client.codec.StringCodec;
+import org.redisson.codec.JacksonCodec;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @PageTitle("官网自动绑定")
 @Route(value = "associate", layout = MainLayout.class)
 @AnonymousAllowed
@@ -40,10 +58,13 @@ public class AssociateView extends VerticalLayout {
     final
     EnterpriseRepository enterpriseRepository;
 
+    final
+    RedissonClient redissonClient;
+
     Dialog dialogLoading = null;
     Dialog dialogResult = new Dialog();
 
-    public AssociateView(AssociateService associateService, EnterpriseRepository enterpriseRepository) {
+    public AssociateView(AssociateService associateService, EnterpriseRepository enterpriseRepository, RedissonClient redissonClient) {
         this.associateService = associateService;
         setMargin(true);
         setSpacing(false);
@@ -75,7 +96,7 @@ public class AssociateView extends VerticalLayout {
                 return;
             }
             UI current = UI.getCurrent();
-            CompletableFuture.runAsync(()->{
+            CompletableFuture.runAsync(() -> {
                 try {
                     AssociateGW associateGW = associateService.doAssociate(start.getValue().strip());
                     current.access((Command) () -> {
@@ -99,11 +120,64 @@ public class AssociateView extends VerticalLayout {
 
         add(start);
 
+        Button button = new Button("Test");
+        add(button);
+        button.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
+            @Override
+            public void onComponentEvent(ClickEvent<Button> buttonClickEvent) {
+                // https://github.com/redisson/redisson/wiki/9.-distributed-services/#96-redisearch-service
+
+                CompletableFuture.runAsync(()->{
+                    int pageSize = 100;
+                    int currentPage = 0;
+                    Pageable pageable = PageRequest.of(currentPage, pageSize);
+
+                    Page<Enterprise> page;
+                    do {
+                        page = enterpriseRepository.findAll(pageable);
+                        List<Enterprise> entities = page.getContent();
+
+                        for (Enterprise enterprise : entities) {
+                            log.info("正在添加企业:" + enterprise.getName());
+                            RJsonBucket<Enterprise> b = redissonClient.getJsonBucket("doc:" + enterprise.getId(), new JacksonCodec<>(Enterprise.class));
+                            b.set(enterprise);
+                        }
+
+                        currentPage++;
+                        pageable = PageRequest.of(currentPage, pageSize);
+                    } while (page.hasNext());
+                });
+
+
+//                Page<Enterprise> all = enterpriseRepository.findAll();
+//                for (Enterprise enterprise : all) {
+//                    log.info("正在添加企业:" + enterprise.getName());
+//                    RJsonBucket<Enterprise> b = redissonClient.getJsonBucket("doc:" + enterprise.getId(), new JacksonCodec<>(Enterprise.class));
+//                    b.set(enterprise);
+//                }
+//
+//                RSearch s = redissonClient.getSearch(StringCodec.INSTANCE);
+//                s.dropIndex("idx");
+//                s.createIndex("idx", IndexOptions.defaults()
+//                                .on(IndexType.JSON)
+//                                .prefix(List.of("doc:")),
+////                        FieldIndex.numeric("$..arr").as("arr"),
+////                        FieldIndex.text("$..value").as("val"));
+//                        FieldIndex.text("$.name"));
+
+//                SearchResult r = s.search("idx", "*", QueryOptions.defaults().returnAttributes(new ReturnAttribute("arr"), new ReturnAttribute("val")));
+//                RSearch s = redissonClient.getSearch(StringCodec.INSTANCE);
+//                SearchResult r = s.search("idx", "*象山*", QueryOptions.defaults());
+//                log.info("---" + JSON.toJSONString(r));
+            }
+        });
+
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.START);
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         getStyle().set("text-align", "center");
         this.enterpriseRepository = enterpriseRepository;
+        this.redissonClient = redissonClient;
     }
 
     private void showLoading() {
@@ -121,6 +195,7 @@ public class AssociateView extends VerticalLayout {
         }
         dialogLoading.open();
     }
+
     private void hideLoading() {
         dialogLoading.close();
     }

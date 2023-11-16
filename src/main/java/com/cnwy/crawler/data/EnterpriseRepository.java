@@ -33,6 +33,13 @@ public interface EnterpriseRepository extends JpaRepository<Enterprise, Long>, J
     Enterprise findByRegNo(String regNo);
 
     /**
+     * 根据企业名称查询是否存在
+     * @param name
+     * @return
+     */
+    Boolean existsByName(String name);
+
+    /**
      * 根据企业名称模糊搜索:企业名称%
      *
      * @param name

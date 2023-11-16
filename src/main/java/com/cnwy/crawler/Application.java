@@ -1,6 +1,8 @@
 package com.cnwy.crawler;
 
 import com.cnwy.crawler.data.SamplePersonRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.theme.Theme;
@@ -27,6 +29,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {
+//        ObjectMapper mapper = new ObjectMapper();
+//        mapper.registerModule(new JSR310Module());
         SpringApplication.run(Application.class, args);
     }
 
