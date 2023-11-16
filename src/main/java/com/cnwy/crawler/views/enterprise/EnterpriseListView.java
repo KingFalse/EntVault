@@ -11,6 +11,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
@@ -200,6 +201,8 @@ public class EnterpriseListView extends Div {
     public static class Filters extends Div implements Specification<Enterprise> {
 
         private final TextField name = new TextField("公司名称");
+        private final TextField city = new TextField("城市");
+        ComboBox<String> hitReason = new ComboBox<>("入选原因");
         private final TextField phone = new TextField("Phone");
         private final DatePicker startDate = new DatePicker("Date of Birth");
         private final DatePicker endDate = new DatePicker();
@@ -215,6 +218,8 @@ public class EnterpriseListView extends Div {
             name.setPlaceholder("请输入关键词...");
 
             occupations.setItems("Insurance Clerk", "Mortarman", "Beer Coil Cleaner", "Scale Attendant");
+            hitReason.setItems("企查查搜索分类:事业单位", "企查查搜索分类:国有企业", "企查查搜索分类:机关单位");
+            hitReason.setValue("");
 
             roles.setItems("Worker", "Supervisor", "Manager", "External");
             roles.addClassName("double-width");
@@ -224,6 +229,8 @@ public class EnterpriseListView extends Div {
             resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             resetBtn.addClickListener(e -> {
                 name.clear();
+                city.clear();
+                hitReason.clear();
                 phone.clear();
                 startDate.clear();
                 endDate.clear();
@@ -240,7 +247,7 @@ public class EnterpriseListView extends Div {
             actions.addClassName("actions");
 
 //            add(name, phone, createDateRangeFilter(), occupations, roles, actions);
-            add(name, actions);
+            add(name,city,hitReason, actions);
         }
 
         private Component createDateRangeFilter() {
@@ -263,6 +270,16 @@ public class EnterpriseListView extends Div {
         public Predicate toPredicate(Root<Enterprise> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
+            if (!city.isEmpty()) {
+                String cityFilter = city.getValue().strip();
+                Predicate firstNameMatch = criteriaBuilder.equal(root.get("city"), cityFilter);
+                predicates.add(criteriaBuilder.or(firstNameMatch));
+            }
+            if (!hitReason.getValue().isEmpty()) {
+                String hitReasonFilter = hitReason.getValue().strip();
+                Predicate firstNameMatch = criteriaBuilder.equal(root.get("hitReason"), hitReasonFilter);
+                predicates.add(criteriaBuilder.or(firstNameMatch));
+            }
             if (!name.isEmpty()) {
                 String nameFilter = name.getValue().strip();
                 Predicate firstNameMatch = criteriaBuilder.like(root.get("name"), "%" + nameFilter + "%");
