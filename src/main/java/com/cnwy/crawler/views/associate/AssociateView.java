@@ -120,57 +120,57 @@ public class AssociateView extends VerticalLayout {
 
         add(start);
 
-        Button button = new Button("Test");
-        add(button);
-        button.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
-            @Override
-            public void onComponentEvent(ClickEvent<Button> buttonClickEvent) {
-                // https://github.com/redisson/redisson/wiki/9.-distributed-services/#96-redisearch-service
-
-                CompletableFuture.runAsync(()->{
-                    int pageSize = 100;
-                    int currentPage = 0;
-                    Pageable pageable = PageRequest.of(currentPage, pageSize);
-
-                    Page<Enterprise> page;
-                    do {
-                        page = enterpriseRepository.findAll(pageable);
-                        List<Enterprise> entities = page.getContent();
-
-                        for (Enterprise enterprise : entities) {
-                            log.info("正在添加企业:" + enterprise.getName());
-                            RJsonBucket<Enterprise> b = redissonClient.getJsonBucket("doc:" + enterprise.getId(), new JacksonCodec<>(Enterprise.class));
-                            b.set(enterprise);
-                        }
-
-                        currentPage++;
-                        pageable = PageRequest.of(currentPage, pageSize);
-                    } while (page.hasNext());
-                });
-
-
-//                Page<Enterprise> all = enterpriseRepository.findAll();
-//                for (Enterprise enterprise : all) {
-//                    log.info("正在添加企业:" + enterprise.getName());
-//                    RJsonBucket<Enterprise> b = redissonClient.getJsonBucket("doc:" + enterprise.getId(), new JacksonCodec<>(Enterprise.class));
-//                    b.set(enterprise);
-//                }
+//        Button button = new Button("Test");
+//        add(button);
+//        button.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
+//            @Override
+//            public void onComponentEvent(ClickEvent<Button> buttonClickEvent) {
+//                // https://github.com/redisson/redisson/wiki/9.-distributed-services/#96-redisearch-service
 //
-//                RSearch s = redissonClient.getSearch(StringCodec.INSTANCE);
-//                s.dropIndex("idx");
-//                s.createIndex("idx", IndexOptions.defaults()
-//                                .on(IndexType.JSON)
-//                                .prefix(List.of("doc:")),
-////                        FieldIndex.numeric("$..arr").as("arr"),
-////                        FieldIndex.text("$..value").as("val"));
-//                        FieldIndex.text("$.name"));
-
-//                SearchResult r = s.search("idx", "*", QueryOptions.defaults().returnAttributes(new ReturnAttribute("arr"), new ReturnAttribute("val")));
-//                RSearch s = redissonClient.getSearch(StringCodec.INSTANCE);
-//                SearchResult r = s.search("idx", "*象山*", QueryOptions.defaults());
-//                log.info("---" + JSON.toJSONString(r));
-            }
-        });
+//                CompletableFuture.runAsync(()->{
+//                    int pageSize = 100;
+//                    int currentPage = 0;
+//                    Pageable pageable = PageRequest.of(currentPage, pageSize);
+//
+//                    Page<Enterprise> page;
+//                    do {
+//                        page = enterpriseRepository.findAll(pageable);
+//                        List<Enterprise> entities = page.getContent();
+//
+//                        for (Enterprise enterprise : entities) {
+//                            log.info("正在添加企业:" + enterprise.getName());
+//                            RJsonBucket<Enterprise> b = redissonClient.getJsonBucket("doc:" + enterprise.getId(), new JacksonCodec<>(Enterprise.class));
+//                            b.set(enterprise);
+//                        }
+//
+//                        currentPage++;
+//                        pageable = PageRequest.of(currentPage, pageSize);
+//                    } while (page.hasNext());
+//                });
+//
+//
+////                Page<Enterprise> all = enterpriseRepository.findAll();
+////                for (Enterprise enterprise : all) {
+////                    log.info("正在添加企业:" + enterprise.getName());
+////                    RJsonBucket<Enterprise> b = redissonClient.getJsonBucket("doc:" + enterprise.getId(), new JacksonCodec<>(Enterprise.class));
+////                    b.set(enterprise);
+////                }
+////
+////                RSearch s = redissonClient.getSearch(StringCodec.INSTANCE);
+////                s.dropIndex("idx");
+////                s.createIndex("idx", IndexOptions.defaults()
+////                                .on(IndexType.JSON)
+////                                .prefix(List.of("doc:")),
+//////                        FieldIndex.numeric("$..arr").as("arr"),
+//////                        FieldIndex.text("$..value").as("val"));
+////                        FieldIndex.text("$.name"));
+//
+////                SearchResult r = s.search("idx", "*", QueryOptions.defaults().returnAttributes(new ReturnAttribute("arr"), new ReturnAttribute("val")));
+////                RSearch s = redissonClient.getSearch(StringCodec.INSTANCE);
+////                SearchResult r = s.search("idx", "*象山*", QueryOptions.defaults());
+////                log.info("---" + JSON.toJSONString(r));
+//            }
+//        });
 
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.START);

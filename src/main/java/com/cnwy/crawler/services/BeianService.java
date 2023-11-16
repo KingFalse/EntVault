@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -30,9 +31,10 @@ public class BeianService {
      * @throws IOException
      */
     public Beian getFromRootDomain(String rootDomain) throws IOException {
-        Beian beian = beianRepository.findByDomain(rootDomain);
-        if (beian != null) {
-            return beian;
+        Beian beian = null;
+        Optional<Beian> byDomain = beianRepository.findByDomain(rootDomain);
+        if (byDomain.isPresent()) {
+            return byDomain.get();
         }
 
         for (int i = 0; i < 20; i++) {
