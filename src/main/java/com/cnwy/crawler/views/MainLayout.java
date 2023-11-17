@@ -60,7 +60,7 @@ public class MainLayout extends AppLayout {
     }
 
     private void addDrawerContent() {
-        H1 appName = new H1("EntVault");
+        H1 appName = new H1("央国企企业库");
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         Header header = new Header(appName);
 
