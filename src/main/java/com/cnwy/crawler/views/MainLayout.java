@@ -3,6 +3,7 @@ package com.cnwy.crawler.views;
 import com.cnwy.crawler.data.User;
 import com.cnwy.crawler.security.AuthenticatedUser;
 import com.cnwy.crawler.views.associate.AssociateView;
+import com.cnwy.crawler.views.associate.AssociatedListView;
 import com.cnwy.crawler.views.dashboard.DashboardView;
 import com.cnwy.crawler.views.enterprise.EnterpriseListView;
 import com.cnwy.crawler.views.upload.UploadView;
@@ -74,6 +75,7 @@ public class MainLayout extends AppLayout {
         if (accessChecker.hasAccess(DashboardView.class)) {
 //            nav.addItem(new SideNavItem("Dashboard", DashboardView.class, LineAwesomeIcon.CHART_AREA_SOLID.create()));
             nav.addItem(new SideNavItem("国央企列表", EnterpriseListView.class, LineAwesomeIcon.FILTER_SOLID.create()));
+            nav.addItem(new SideNavItem("已绑定官网列表", AssociatedListView.class, LineAwesomeIcon.FILTER_SOLID.create()));
             nav.addItem(new SideNavItem("官网自动绑定", AssociateView.class, LineAwesomeIcon.FILTER_SOLID.create()));
             nav.addItem(new SideNavItem("数据Excel上传", UploadView.class, LineAwesomeIcon.FILTER_SOLID.create()));
 
