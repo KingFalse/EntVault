@@ -11,6 +11,8 @@ import java.util.Map;
 public class DingTalk {
     public static void main(String[] args) {
         send("xxxx");
+        StringBuilder newIDs = new StringBuilder();
+        System.err.println(newIDs.toString().length());
     }
     public static void send(String msgInfo) {
         try {

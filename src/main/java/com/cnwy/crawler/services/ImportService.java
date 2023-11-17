@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.cnwy.crawler.data.BeianRepository;
 import com.cnwy.crawler.data.Enterprise;
 import com.cnwy.crawler.data.EnterpriseRepository;
+import com.cnwy.crawler.util.DingTalk;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -37,6 +38,7 @@ public class ImportService {
             Row row;
             Cell cell;
             String title = "";
+            StringBuilder newIDs = new StringBuilder();
             List<Enterprise> es = new ArrayList<>();
             // 遍历所有行
             for (short i = 2; i < sheet.getLastRowNum() + 1; i++) {
@@ -51,6 +53,7 @@ public class ImportService {
                     enterprise.setUpdateTime(LocalDateTime.now());
                 }else {
                     log.info("发现一条新数据:"+qccID);
+                    newIDs.append(qccID).append(",");
                     enterprise = new Enterprise();
                     enterprise.setCreateTime(LocalDateTime.now());
                     enterprise.setUpdateTime(LocalDateTime.now());
@@ -81,6 +84,8 @@ public class ImportService {
             wb.close();
 
             enterpriseRepository.saveAll(es);
+            String ids = newIDs.toString();
+            DingTalk.send("本次新入库数据%s".formatted(ids.split(",").length));
         } catch (Exception e) {
             log.error("导入excel文件 {}, 出现异常!", e);
         }

@@ -5,6 +5,7 @@ import com.cnwy.crawler.data.Enterprise;
 import com.cnwy.crawler.data.EnterpriseRepository;
 import com.cnwy.crawler.services.AssociateService;
 import com.cnwy.crawler.services.ImportService;
+import com.cnwy.crawler.util.DingTalk;
 import com.cnwy.crawler.util.UploadChinaI18N;
 import com.cnwy.crawler.util.VaadinUtil;
 import com.cnwy.crawler.views.MainLayout;
@@ -22,7 +23,6 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -90,7 +90,8 @@ public class UploadView extends VerticalLayout {
         upload.addFinishedListener(event -> {
             log.info("上传完成,开始读取excel..." + event.getFileName());
             InputStream inputStream = buffer.getInputStream();
-            CompletableFuture.runAsync(()->{
+            CompletableFuture.runAsync(() -> {
+                DingTalk.send("收到上传的Excel文件:%s, 开始倒入...".formatted(event.getFileName()));
                 importService.importExcel(inputStream);
             });
 
