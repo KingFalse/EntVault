@@ -11,9 +11,12 @@ import java.util.Map;
 public class DingTalk {
     public static void main(String[] args) {
         send("xxxx");
-        StringBuilder newIDs = new StringBuilder();
-        System.err.println(newIDs.toString().length());
     }
+
+    /**
+     * 发送消息到临时群
+     * @param msgInfo
+     */
     public static void send(String msgInfo) {
         try {
             Map<String, Object> msg = Map.of("msgtype", "text", "text", Map.of("content", "临时机器人:"+msgInfo));
