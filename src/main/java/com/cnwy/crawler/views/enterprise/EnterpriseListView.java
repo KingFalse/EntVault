@@ -107,6 +107,7 @@ public class EnterpriseListView extends Div {
         grid.addColumn("city").setResizable(true).setHeader("市").setAutoWidth(true);
         grid.addColumn("district").setResizable(true).setHeader("区/县").setAutoWidth(true);
         grid.addColumn("hitReason").setResizable(true).setHeader("入选原因").setAutoWidth(true);
+        grid.addColumn(new LocalDateTimeRenderer<>(Enterprise::getCreateTime, () -> VaadinUtil.dateTimeFormatter)).setHeader("入库时间").setSortable(true).setAutoWidth(true).setResizable(true);
         grid.addColumn(new LocalDateTimeRenderer<>(Enterprise::getUpdateTime, () -> VaadinUtil.dateTimeFormatter)).setHeader("更新时间").setSortable(true).setAutoWidth(true).setResizable(true);
         createOperateColumn();
 
@@ -202,6 +203,7 @@ public class EnterpriseListView extends Div {
 
         private final TextField name = new TextField("公司名称");
         private final TextField city = new TextField("城市");
+        private final TextField district = new TextField("区县");
         ComboBox<String> hitReason = new ComboBox<>("入选原因");
         private final TextField phone = new TextField("Phone");
         private final DatePicker startDate = new DatePicker("Date of Birth");
@@ -230,6 +232,7 @@ public class EnterpriseListView extends Div {
             resetBtn.addClickListener(e -> {
                 name.clear();
                 city.clear();
+                district.clear();
                 hitReason.clear();
                 phone.clear();
                 startDate.clear();
@@ -247,7 +250,7 @@ public class EnterpriseListView extends Div {
             actions.addClassName("actions");
 
 //            add(name, phone, createDateRangeFilter(), occupations, roles, actions);
-            add(name,city,hitReason, actions);
+            add(name,city,district,hitReason, actions);
         }
 
         private Component createDateRangeFilter() {
@@ -273,6 +276,11 @@ public class EnterpriseListView extends Div {
             if (!city.isEmpty()) {
                 String cityFilter = city.getValue().strip();
                 Predicate firstNameMatch = criteriaBuilder.equal(root.get("city"), cityFilter);
+                predicates.add(criteriaBuilder.or(firstNameMatch));
+            }
+            if (!district.isEmpty()) {
+                String cityFilter = district.getValue().strip();
+                Predicate firstNameMatch = criteriaBuilder.equal(root.get("district"), cityFilter);
                 predicates.add(criteriaBuilder.or(firstNameMatch));
             }
             if (!hitReason.getValue().isEmpty()) {

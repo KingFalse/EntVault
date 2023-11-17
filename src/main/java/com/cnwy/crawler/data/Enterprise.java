@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 public class Enterprise extends AbstractEntity {
 
     @NotEmpty
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 2000)
     private String name;//企业名称
     private String alias;//企业简称
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String description;//企业简介
     private String website;//企业官网
     private String telephone;//联系电话

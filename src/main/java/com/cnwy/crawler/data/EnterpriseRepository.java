@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EnterpriseRepository extends JpaRepository<Enterprise, Long>, JpaSpecificationExecutor<Enterprise> {
 
@@ -23,6 +24,13 @@ public interface EnterpriseRepository extends JpaRepository<Enterprise, Long>, J
      * @return
      */
     Enterprise findByunifiedSocialCreditCode(String unifiedSocialCreditCode);
+
+    /**
+     * 根据企查查ID查询对应企业
+     * @param qccID
+     * @return
+     */
+    Optional<Enterprise> findByQccID(String qccID);
 
     /**
      * 根据注册号查询对应企业

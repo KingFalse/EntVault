@@ -46,11 +46,13 @@ public class EnterpriseView extends Composite<VerticalLayout> implements BeforeE
             H2 name = new H2(enterprise.getName());
 
             HorizontalLayout layoutTags = new HorizontalLayout();
-            Arrays.stream(enterprise.getTags().split(",")).forEach(tag -> {
-                Span badge = new Span(tag);
-                badge.getElement().getThemeList().add("badge small");
-                layoutTags.add(badge);
-            });
+            if (enterprise.getTags()!=null){
+                Arrays.stream(enterprise.getTags().split(",")).forEach(tag -> {
+                    Span badge = new Span(tag);
+                    badge.getElement().getThemeList().add("badge small");
+                    layoutTags.add(badge);
+                });
+            }
             HorizontalLayout layoutHref = new HorizontalLayout();
             if (enterprise.getQccID()!=null){
                 Anchor anchor = new Anchor("https://www.qcc.com/firm/%s.html".formatted(enterprise.getQccID()), "跳转企查查");
@@ -83,7 +85,7 @@ public class EnterpriseView extends Composite<VerticalLayout> implements BeforeE
 
             TextField type = new TextField();
             type.setLabel("央国企类型");
-            type.setValue(enterprise.getType());
+            type.setValue(Optional.ofNullable(enterprise.getType()).orElse(""));
             type.setReadOnly(true);
             formLayout2Col.add(type);
 
